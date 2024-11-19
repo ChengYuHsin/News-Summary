@@ -4,6 +4,17 @@ from utils.query import ask_gpt
 from utils.send_file import send_gmail
 import pandas as pd
 import time
+import re
+
+# 定義函式以清理非法字符
+def clean_illegal_characters(text):
+    """
+    清理非法字符（符合 openpyxl 限制的字符範圍），保留換行符。
+    """
+    if not isinstance(text, str):
+        return text  # 如果不是字串，直接返回原值
+    # 使用正則表達式移除非法字符（U+0000-U+0008 和 U+000B-U+000C 及 U+000E-U+001F）
+    return re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", text)
 
 # 讀取 prompt 文件
 with open("prompt/新聞統整.md", "r", encoding="utf-8") as file:
@@ -35,8 +46,11 @@ for url_dict in urls:
 # 將資料轉換為 DataFrame
 df = pd.DataFrame(data)
 
-# 刪除重複的 news，保留第一個出現的，對於 "解析文章失敗" 不進行重複刪除
+# 刪除重複的新聞內容，保留第一個出現的
 df = df.drop_duplicates(subset='新聞', keep='first')
+
+# 清理非法字符
+df = df.applymap(clean_illegal_characters)
 
 # 新增摘要列並加入延遲，防止 too many requests 錯誤
 try:
@@ -44,7 +58,7 @@ try:
         if row['新聞'] != "解析文章失敗":
             print(f"# 生成摘要: {row['網址']}")
             summary = ask_gpt(prompt, row['新聞'])
-            df.loc[index, '摘要'] = summary  # 使用 loc 更新 DataFrame 的 "摘要" 欄位
+            df.loc[index, '摘要'] = summary
             time.sleep(5)
         else:
             df.loc[index, '摘要'] = "無法摘要"
