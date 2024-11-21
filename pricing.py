@@ -2,7 +2,7 @@ import pandas as pd
 import tiktoken
 
 # 載入資料
-df = pd.read_excel('output/news_data.xlsx')  # 從 Excel 檔案中讀取資料
+df = pd.read_excel('output\Google快訊-摘要.xlsx')  # 從 Excel 檔案中讀取資料
 tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")  # 初始化 Tokenizer，根據 GPT-4o-mini 模型
 
 # 定義計算 Token 數的函式
