@@ -1,8 +1,12 @@
 import pandas as pd
 import tiktoken
+import logging
+
+# 設置 logging 基本配置
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # 載入資料
-df = pd.read_excel('output\Google快訊-摘要.xlsx')  # 從 Excel 檔案中讀取資料
+df = pd.read_excel('output/Google快訊-摘要.xlsx')  # 從 Excel 檔案中讀取資料
 tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")  # 初始化 Tokenizer，根據 GPT-4o-mini 模型
 
 # 定義計算 Token 數的函式
@@ -71,8 +75,8 @@ def calculate_cost(n, input_cost_per_million=0.15, output_cost_per_million=0.60)
     output_tokens_per_request = summary_avg_token
 
     # 打印 Token 計算結果
-    print("input_tokens_per_request:", input_tokens_per_request)
-    print("output_tokens_per_request:", output_tokens_per_request)
+    logging.info(f"input_tokens_per_request: {input_tokens_per_request}")
+    logging.info(f"output_tokens_per_request: {output_tokens_per_request}")
 
     # 計算總輸入和輸出 Token 數
     total_input_tokens = n * input_tokens_per_request  # 總輸入 Token 數
@@ -93,4 +97,4 @@ def calculate_cost(n, input_cost_per_million=0.15, output_cost_per_million=0.60)
 # 主程式
 if __name__ == '__main__':
     total_cost = calculate_cost(3600)  # 設定處理 3600 條新聞
-    print(f"Total cost: {total_cost:.2f} TWD")  # 打印總成本（以 TWD 為單位）
+    logging.info(f"Total cost: {total_cost:.2f} TWD")  # 打印總成本（以 TWD 為單位）

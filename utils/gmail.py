@@ -6,18 +6,20 @@ import dotenv
 import pandas as pd
 from datetime import datetime, timedelta
 from utils.parse import get_real_url
+import logging
 
 dotenv.load_dotenv()
 
 USER = os.environ.get('GMAIL')
 PASSWORD = os.environ.get('PASSWORD')
 
+logger = logging.getLogger(__name__)
 
 def get_urls(subjects=["Google 快訊", "Google Alert"], start_date=datetime.now()-timedelta(days=0), end_date=datetime.now() + timedelta(days=1)):
     start_date_str = start_date.strftime('%Y/%m/%d')
     end_date_str = end_date.strftime('%Y/%m/%d')
     search_query = f'({" OR ".join([f"subject:\"{subject}\"" for subject in subjects])}) after:{start_date_str} before:{end_date_str}'
-    print(f"Gmail搜尋條件：{search_query}")
+    logger.info(f"Gmail搜尋條件：{search_query}")
 
     url_list = []
     unique_urls = set()  # 用於儲存唯一的 real_url
@@ -25,7 +27,7 @@ def get_urls(subjects=["Google 快訊", "Google Alert"], start_date=datetime.now
     client.login(USER, PASSWORD)
     select_info = client.select_folder('INBOX', readonly=True)
     UIDs = client.gmail_search(search_query)
-    print(f"搜尋完成，找到 {len(UIDs)} 封郵件。")
+    logger.info(f"搜尋完成，找到 {len(UIDs)} 封郵件。")
 
     for uid in UIDs:
         raw_message = client.fetch([uid], ['BODY.PEEK[]', 'RFC822.SIZE'])
@@ -39,7 +41,7 @@ def get_urls(subjects=["Google 快訊", "Google Alert"], start_date=datetime.now
             hrefs = list(set(hrefs))
 
             if hrefs:
-                print(f"# 處理郵件 UID {uid} ")
+                logger.info(f"# 處理郵件 UID {uid} ")
                 for href in hrefs:
                     real_url = get_real_url(href)
                     if real_url and real_url not in unique_urls:
@@ -49,9 +51,9 @@ def get_urls(subjects=["Google 快訊", "Google Alert"], start_date=datetime.now
                             '實際URL': real_url
                         })
             else:
-                print("郵件中沒有找到任何網頁連結。")
+                logger.info("郵件中沒有找到任何網頁連結。")
         else:
-            print("郵件中沒有 HTML 內容。")
+            logger.info("郵件中沒有 HTML 內容。")
 
     client.logout()
     return url_list
@@ -64,4 +66,4 @@ if __name__ == "__main__":
     df = pd.DataFrame(url_list)
     
     if not df.empty:
-        print(df)
+        logger.info("獲取的 URL 列表：\n%s", df.to_string())

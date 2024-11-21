@@ -5,6 +5,10 @@ from utils.send_file import send_gmail
 import pandas as pd
 import time
 import re
+import logging
+
+# 設置 logging 基本配置
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # 定義函式以清理非法字符
 def clean_illegal_characters(text):
@@ -31,7 +35,7 @@ for url_dict in urls:
     if 'youtube' in url:
         continue
     
-    print(f"正在處理 URL: {url}")  # 顯示當前處理的 URL
+    logging.info(f"正在處理 URL: {url}")  # 顯示當前處理的 URL
     news_info = get_news(url)
     
     # 添加標題和新聞內容到資料列表
@@ -56,7 +60,7 @@ df = df.applymap(clean_illegal_characters)
 try:
     for index, row in df.iterrows():
         if row['新聞'] != "解析文章失敗":
-            print(f"# 生成摘要: {row['網址']}")
+            logging.info(f"# 生成摘要: {row['網址']}")
             summary = ask_gpt(prompt, row['新聞'])
             df.loc[index, '摘要'] = summary
             time.sleep(5)
@@ -69,11 +73,11 @@ except Exception as e:
     df.to_excel(file_path, index=False)
     send_gmail(subject="新聞摘要(部分)", body="因中途出錯，只產生部分Google快訊報告 Excel 檔案，請查收。", file_path=file_path)
     send_gmail(recipient_email="t110381026@ntut.org.tw", subject="新聞摘要(部分)", body="因中途出錯，只產生部分Google快訊報告 Excel 檔案，請查收。", file_path=file_path)
-    print(f"發生錯誤：{e}，已將部分資料儲存至 Google快訊-摘要(部分).xlsx")
+    logging.error(f"發生錯誤：{e}，已將部分資料儲存至 Google快訊-摘要(部分).xlsx")
 else:
     # 如果無錯誤，儲存完整資料
     file_path = "output/Google快訊-摘要.xlsx"
     df.to_excel(file_path, index=False)
     send_gmail()
     send_gmail(recipient_email="t110381026@ntut.org.tw")
-    print("資料已成功儲存到 Google快訊-摘要.xlsx")
+    logging.info("資料已成功儲存到 Google快訊-摘要.xlsx")

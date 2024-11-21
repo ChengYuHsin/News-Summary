@@ -2,9 +2,12 @@ from openai import OpenAI
 import os
 import time
 import dotenv
+import logging
 
 # 加載環境變量
 dotenv.load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 def query(prompt, message, model):
     # 設置 API 金鑰
@@ -33,10 +36,10 @@ def ask_gpt(prompt, message, model='gpt-4o-mini'):
         except Exception as e:
             if attempt < retries - 1:
                 wait_time = wait_times[attempt]
-                print(f"請求失敗，正在等待 {wait_time} 秒後重試...（第 {attempt + 1} 次重試）")
+                logger.warning(f"請求失敗，正在等待 {wait_time} 秒後重試...（第 {attempt + 1} 次重試）")
                 time.sleep(wait_time)
             else:
-                print("所有重試均失敗，返回空字符串。")
+                logger.error("所有重試均失敗，返回空字符串。")
                 return ""
 
 # 範例使用
@@ -46,4 +49,4 @@ if __name__ == "__main__":
     
     for i in range(20):
         answer = ask_gpt(prompt, message)
-        print(answer)
+        logger.info(answer)

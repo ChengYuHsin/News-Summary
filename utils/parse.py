@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
 import time
+import logging
 
 # 常見的目標 URL 參數名稱
 target_params = ['url', 'u', 'redirect', 'target', 'dest', 'destination', 'to', 'rurl', 'ru', 'q', 'link', 'fu', 'ffu']
@@ -15,8 +16,10 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'
 }
 
+logger = logging.getLogger(__name__)
+
 def get_real_url(url):
-    print(f"\n# 解析實際網址：{url}")
+    logger.info(f"\n# 解析實際網址：{url}")
     
     if 'mailto' in url:
         return None
@@ -36,7 +39,7 @@ def get_real_url(url):
     return url
 
 def get_news(url):
-    print(f"\n# 抓取新聞：{url}")
+    logger.info(f"\n# 抓取新聞：{url}")
     try:
         # 優先使用 Article 解析
         article = Article(url)
@@ -49,7 +52,7 @@ def get_news(url):
         else:
             raise ValueError("Article 解析結果為空，嘗試使用 BeautifulSoup")
     except Exception as e:
-        print(f"使用 Article 解析失敗，改用 BeautifulSoup")
+        logger.warning(f"使用 Article 解析失敗，改用 BeautifulSoup: {e}")
         
         # 改用 BeautifulSoup 解析，並附加模擬的 headers
         try:
@@ -64,10 +67,10 @@ def get_news(url):
             if content:
                 return {'title': title, 'content': content}
             else:
-                print("BeautifulSoup 無法解析，改用 Selenium")
+                logger.warning("BeautifulSoup 無法解析，改用 Selenium")
                 return get_news_via_selenium(url)
         except Exception as e:
-            print(f"使用 BeautifulSoup 解析失敗，改用 Selenium")
+            logger.warning(f"使用 BeautifulSoup 解析失敗，改用 Selenium: {e}")
             return get_news_via_selenium(url)
 
 def get_news_via_selenium(url):
@@ -90,5 +93,5 @@ def get_news_via_selenium(url):
         
         return {'title': title, 'content': content} if content else {'title': title, 'content': "無法解析此網站的內容。"}
     except Exception as e:
-        print(f"Selenium 解析失敗")
+        logger.error(f"Selenium 解析失敗: {e}")
         return {'title': "無法獲取標題", 'content': "解析文章失敗"}
