@@ -15,7 +15,7 @@ PASSWORD = os.environ.get('PASSWORD')
 
 logger = logging.getLogger(__name__)
 
-def get_urls(subjects=["Google 快訊", "Google Alert"], start_date=datetime.now()-timedelta(days=0), end_date=datetime.now() + timedelta(days=1)):
+def get_urls(subjects=["Google 快訊", "Google Alert"], start_date=datetime.now()-timedelta(days=7), end_date=datetime.now() + timedelta(days=1)):
     start_date_str = start_date.strftime('%Y/%m/%d')
     end_date_str = end_date.strftime('%Y/%m/%d')
     search_query = f'({" OR ".join([f"subject:\"{subject}\"" for subject in subjects])}) after:{start_date_str} before:{end_date_str}'
